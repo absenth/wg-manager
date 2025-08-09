@@ -1,12 +1,9 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
 	"os"
 	"os/exec"
-	"path/filepath"
-	"strings"
 
 	"github.com/charmbracelet/lipgloss"
 )
@@ -97,4 +94,3 @@ func formatWgOutput(output string) string {
 
 	return formattedOutput
 }
-

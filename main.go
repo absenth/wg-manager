@@ -3,11 +3,22 @@ package main
 import (
 	"fmt"
 	"os"
+
+	tea "github.com/charmbracelet/bubbletea"
 )
 
 func main() {
 	args := os.Args[1:]
 	config, state, list, check := parseArgs(args)
+
+	if len(args) == 0 {
+		p := tea.NewProgram(initialModel())
+		if err := p.Start(); err != nil {
+			fmt.Println("Error running program:", err)
+			os.Exit(1)
+		}
+		return
+	}
 
 	if list {
 		listConfigs()
