@@ -1,84 +1,116 @@
 # wg-manager
 
-`wg-manager` is a simple management tool for WireGuard VPN configurations on Linux systems. It aims to simplify the creation, modification, and management of WireGuard interfaces.
+## Description
 
-**Note:** This tool has been primarily tested on Arch Linux. While it may work on other distributions, support is not guaranteed.
+`wg-manager` is a simple command-line tool for managing WireGuard VPN configurations on Arch Linux. It allows you to list available WireGuard configuration files, bring interfaces up or down using a specified configuration file, and check the status of WireGuard connections with formatted output.
 
 ## Features
 
-- **Create and Configure WireGuard Interfaces:** Easily set up new VPN interfaces based on user input or predefined templates.
-- **Manage Peers:** Add, remove, and modify peers for your WireGuard interfaces.
-- **Export Configurations:** Save configurations to files for backup or manual editing.
-- **Start and Stop Interfaces:** Manage the lifecycle of your WireGuard interfaces directly through the tool.
+- **List Configurations:** Discover all available WireGuard configuration files in `/etc/wireguard/`.
+- **Manage Configurations:** Bring specific WireGuard interfaces up or down using the `wg-quick` utility.
+- **Check Status:** Run the `wg` command and display its output with a visually appealing format.
+- **Styled Output:** Use `lipgloss` for consistent and colorful command-line output.
 
-## Prerequisites
+## Requirements
 
-- **WireGuard Tools:** Ensure you have `wireguard-tools` installed on your system.
+- **Arch Linux:** The tool has been built and tested on Arch Linux, but it should work on any system with WireGuard installed.
+- **Go-lang:** Ensure that Go is installed on your system to build the tool from source. You can install it via `pacman`:
+  ```bash
+  sudo pacman -S go
+  ```
+- **WireGuard:** Install WireGuard and `wg-quick` using:
   ```bash
   sudo pacman -S wireguard-tools
-  ```
-- **Python 3:** `wg-manager` is written in Python and requires Python 3.6 or higher.
-  ```bash
-  sudo pacman -S python
   ```
 
 ## Installation
 
+### From Source
+
 1. **Clone the Repository:**
    ```bash
-   git clone https://github.com/absenth/wg-manager.git
+   git clone https://github.com/yourusername/wg-manager.git
    cd wg-manager
    ```
 
-2. **Install Dependencies:**
+2. **Build and Install:**
    ```bash
-   pip install -r requirements.txt
+   go build -o wg-manager main.go wireguard.go utils.go style.go
+   sudo mv wg-manager /usr/local/bin/
    ```
+
+### From Precompiled Binary
+
+- Download the precompiled binary from the [releases page](https://github.com/yourusername/wg-manager/releases) and place it in your `PATH`.
 
 ## Usage
 
-### Create a New WireGuard Interface
-
+### List Available Configurations
 ```bash
-python wg-manager.py create --interface <interface_name>
+wg-manager --list
 ```
 
-### Add a Peer to an Existing Interface
-
-```bash
-python wg-manager.py add-peer --interface <interface_name> --peer-name <peer_name>
+**Output Example:**
+```
+Available WireGuard configurations:
+  wg0
+  wg1
 ```
 
-### Start a WireGuard Interface
-
+### Bring a Configuration Up or Down
 ```bash
-python wg-manager.py start --interface <interface_name>
+wg-manager --config <configuration_name> --state up|down
 ```
 
-### Stop a WireGuard Interface
-
+**Example:**
 ```bash
-python wg-manager.py stop --interface <interface_name>
+wg-manager --config wg0 --state up
+wg-manager --config wg1 --state down
 ```
 
-For more detailed usage, see the `--help` flag:
-
+### Check WireGuard Status
 ```bash
-python wg-manager.py --help
+wg-manager --check
+```
+
+**Output Example:**
+```
+interface: wg0
+  public key: abcdef1234567890abcdef1234567890abcdef1234
+  private key: (hidden)
+  listening port: 51820
+
+peer: abcdef1234567890abcdef1234567890abcdef1234
+  endpoint: 203.0.113.1:51820
+  allowed ips: 10.0.0.1/32
+  latest handshake: 2023-10-05T14:39:06Z
+  transfer: 2.5 MB received, 1.8 MB sent
+```
+
+### Help Information
+```bash
+wg-manager --help
+```
+
+**Output:**
+```
+Usage: wg-manager
+--config <config_name> --state <up|down>
+--list: list available WireGuard configuration files
+--check: Run the wg command and display its output with formatting
 ```
 
 ## Contributing
 
-Contributions to `wg-manager` are welcome! Feel free to fork the repository, make your changes, and submit a pull request. Please ensure that any new features are tested on Arch Linux before submission.
+Contributions are welcome! Feel free to fork the repository, make changes, and submit pull requests. For any issues or feature requests, please open an issue on the [GitHub repository](https://github.com/yourusername/wg-manager).
 
 ## License
 
-`wg-manager` is licensed under the MIT License. See the [LICENSE](LICENSE) file for more information.
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for more details.
 
-## Support
+## Acknowledgments
 
-If you encounter any issues or have feature requests, please open an issue on the [GitHub repository](https://github.com/absenth/wg-manager/issues).
+- **WireGuard:** A fast, modern, and secure VPN tunneling protocol.
+- **lipgloss:** A styling library for the command-line in Go, used for creating visually appealing output.
 
 ---
-
-Enjoy managing your WireGuard VPNs with `wg-manager`!
