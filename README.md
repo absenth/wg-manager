@@ -110,7 +110,7 @@ This project is licensed under the BSD 2 Clause License. See the [LICENSE](LICEN
 
 ## Acknowledgments
 
-- **WireGuard:** A fast, modern, and secure VPN tunneling protocol.
-- **lipgloss:** A styling library for the command-line in Go, used for creating visually appealing output.
+- **[WireGuard](https://www.wireguard.com/):** A fast, modern, and secure VPN tunneling protocol.
+- **[lipgloss](https://github.com/charmbracelet/lipgloss):** A styling library for the command-line in Go, used for creating visually appealing output.
 
 ---
