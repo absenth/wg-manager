@@ -2,8 +2,6 @@ package main
 
 import (
 	"fmt"
-	"os/exec"
-	"strings"
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -16,32 +14,10 @@ type model struct {
 }
 
 func initialModel() model {
-	// Fetch available configurations
-	configs := getConfigList()
-
-	// Check if a VPN is active and get its state
-	activeState, activeConfig := getVPNState()
-
-	// Set default state to UP if no VPN is active
-	if activeState == "" {
-		activeState = "up"
-	}
-
-	// Auto-select the active configuration if applicable
-	cursor := 0
-	if activeConfig != "" {
-		for i, config := range configs {
-			if config == activeConfig {
-				cursor = i
-				break
-			}
-		}
-	}
-
 	return model{
-		configs: configs,
-		cursor:  cursor,
-		state:   activeState,
+		configs: getConfigList(),
+		cursor:  0,
+		state:   "",
 	}
 }
 
@@ -54,7 +30,7 @@ type tickMsg struct{}
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
-		switch msg.String() {
+		switch keypress := msg.String(); keypress {
 		case "ctrl+c", "q":
 			return m, tea.Quit
 		case "up", "k":
@@ -66,23 +42,32 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.cursor++
 			}
 		case "enter":
-			// Apply the configuration state
+			if m.state == "" {
+				return m, nil
+			}
 			runWgQuick(m.configs[m.cursor], m.state)
 			return m, tea.Quit
 		case "u":
-			m.state = "up"
+			if m.state != "up" {
+				m.state = "up"
+			} else {
+				m.state = ""
+			}
 		case "d":
-			m.state = "down"
+			if m.state != "down" {
+				m.state = "down"
+			} else {
+				m.state = ""
+			}
 		}
 	case tickMsg:
 		return m, nil
 	}
 
-	return m, tea.Batch(tickCmd(), tea.Blink)
+	return m, tickCmd()
 }
 
 func (m model) View() string {
-	// Render the Interface
 	s := TitleStyle.Render("WireGuard Configuration Manager") + "\n\n"
 
 	for i, config := range m.configs {
@@ -93,10 +78,15 @@ func (m model) View() string {
 		s += fmt.Sprintf("%s %s\n", cursor, ConfigStyle.Render(config))
 	}
 
-	stateInfo := InfoStyle.Render(fmt.Sprintf(" [%s]", strings.ToUpper(m.state)))
+	stateInfo := ""
+	if m.state == "up" {
+		stateInfo = InfoStyle.Render(" [UP]")
+	} else if m.state == "down" {
+		stateInfo = InfoStyle.Render(" [DOWN]")
+	}
 	s += fmt.Sprintf("\nState: %s\n", stateInfo)
 
-	s += "\nPress 'u' to set state to UP, 'd' to set state to DOWN, and 'enter' to apply.\n"
+	s += "\nPress 'u' to set state to up, 'd' to set state to down, and 'enter' to apply.\n"
 	s += "Press 'q' or 'ctrl+c' to quit."
 
 	return s
@@ -106,31 +96,4 @@ func tickCmd() tea.Cmd {
 	return tea.Tick(100*time.Millisecond, func(time.Time) tea.Msg {
 		return tickMsg{}
 	})
-}
-
-func getVPNState() (string, string) {
-	// Execute `wg` command to evaluate VPN status
-	out, err := exec.Command("wg").Output()
-	if err != nil || len(out) == 0 {
-		// No VPN is active
-		return "", ""
-	}
-
-	// Parse output for active configuration and state
-	output := strings.TrimSpace(string(out))
-	lines := strings.Split(output, "\n")
-
-	if len(lines) > 0 {
-		// Derive active configuration name (first line after "interface:")
-		activeConfig := strings.TrimSpace(strings.TrimPrefix(lines[0], "interface:"))
-		return "down", activeConfig
-	}
-
-	return "", ""
-}
-
-func runWgQuick(config string, state string) {
-	// Execute `wg-quick up/down <configuration>` based on the state
-	cmd := exec.Command("wg-quick", state, config)
-	cmd.Run()
 }
